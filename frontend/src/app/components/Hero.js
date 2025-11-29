@@ -36,7 +36,7 @@ export default function Hero() {
             </div>
           </div>
 
-          <div className="rounded-xl bg-gradient-to-br from-slate-50 to-white p-6 border">
+          <div className="rounded-xl bg-linear-to-br from-slate-50 to-white p-6 border">
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-sm text-slate-500">Community pool (live)</div>
