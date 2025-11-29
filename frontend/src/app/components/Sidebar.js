@@ -1,139 +1,90 @@
-// src/app/components/Sidebar.js
 'use client'
-import { useState } from 'react'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 export default function Sidebar({ active = '' }) {
-  // sidebar open on mobile
-  const [open, setOpen] = useState(true)
-  // auto-open bidding submenu when current active indicates bidding-related page
-  const [biddingOpen, setBiddingOpen] = useState(active && active.toString().startsWith('bidding'))
+  // auto-open if current path matches a group
+  const pathname = usePathname()
+  const [open, setOpen] = useState({
+    bidding: false,
+    community: false
+  })
 
-  // unified nav: items may optionally have `children`
-  const nav = [
-    { key: 'dashboard', label: 'Dashboard', href: '/dashboard' },
-    {
-      key: 'bidding',
-      label: 'Bidding',
-      children: [
-        { key: 'bidding:borrower:new', label: 'Borrower (create)', href: '/bidding/borrower/new' },
-        { key: 'bidding:investor', label: 'Investor', href: '/bidding/investor' },
-      ],
-    },
-    { key: 'leaderboard', label: 'Leaderboard', href: '/leaderboard' },
-    { key: 'pool', label: 'Community Pool', href: '/' },
-    { key: 'profile', label: 'Profile', href: '/auth/login' },
-  ]
+  useEffect(() => {
+    if (!pathname) return
+    if (pathname.startsWith('/bidding')) setOpen(o => ({ ...o, bidding: true }))
+    if (pathname.startsWith('/community-pool')) setOpen(o => ({ ...o, community: true }))
+  }, [pathname])
+
+  const toggle = (k) => setOpen(o => ({ ...o, [k]: !o[k] }))
+
+  const itemClass = (isActive) =>
+    `flex items-center justify-between gap-3 px-3 py-2 rounded-md text-sm ${
+      isActive ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-slate-700 hover:bg-slate-100'
+    }`
+
+  const subClass = (isActive) =>
+    `block w-full text-sm px-3 py-2 rounded-md ${isActive ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`
 
   return (
-    <aside className="shrink-0">
-      {/* Mobile toggle */}
-      <div className="md:hidden p-2">
-        <button
-          onClick={() => setOpen(v => !v)}
-          className="px-3 py-2 rounded bg-slate-100 text-sm"
-          aria-expanded={open}
-        >
-          {open ? 'Hide menu' : 'Show menu'}
-        </button>
-      </div>
+    <nav className="sticky top-6 self-start">
+      <div className="w-64 space-y-3">
+        <div className="px-2">
+          <div className="text-xs font-semibold text-slate-500 uppercase mb-2">Marketplace</div>
 
-      {/* Sidebar panel */}
-      <div className={`${open ? 'block' : 'hidden'} md:block w-64`}>
-        <div className="h-full border-r bg-white min-h-[calc(100vh-64px)] flex flex-col">
-          <div className="p-4 border-b">
-            <div className="font-semibold text-lg">VendTrust</div>
-            <div className="text-xs text-slate-500 mt-1">Trust-driven lending</div>
+          {/* Bidding group */}
+          <div>
+            <button
+              onClick={() => toggle('bidding')}
+              className={itemClass(active === 'bidding' || pathname?.startsWith('/bidding'))}
+              aria-expanded={open.bidding}
+            >
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M3 7h18M3 12h18M3 17h18"/></svg>
+                Bidding
+              </span>
+              <svg className={`w-4 h-4 transform ${open.bidding ? 'rotate-90' : ''}`} viewBox="0 0 20 20" fill="currentColor"><path d="M6 6 L14 10 L6 14 Z" /></svg>
+            </button>
+
+            {open.bidding && (
+              <div className="mt-2 space-y-1 pl-2">
+                <Link href="/bidding/borrower/new" className={subClass(pathname === '/bidding/borrower/new')}>Borrower</Link>
+                <Link href="/bidding/investor" className={subClass(pathname === '/bidding/investor')}>Investor</Link>
+              </div>
+            )}
           </div>
 
-          <nav className="p-3 space-y-1" aria-label="Main navigation">
-            {nav.map((item) => {
-              const isActiveTop =
-                item.key === active ||
-                (item.children && item.children.some(c => c.key === active || (active && active.startsWith(item.key))))
-              const wrapperCls = isActiveTop
-                ? 'bg-indigo-50 border-l-4 border-indigo-600 text-indigo-700'
-                : 'hover:bg-slate-50'
+          {/* Community Pool group */}
+          <div className="mt-2">
+            <button
+              onClick={() => toggle('community')}
+              className={itemClass(active === 'community-pool' || pathname?.startsWith('/community-pool'))}
+              aria-expanded={open.community}
+            >
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2-1.343-2-3-2zM5 20v-1a4 4 0 014-4h6a4 4 0 014 4v1"/></svg>
+                Community Pool
+              </span>
+              <svg className={`w-4 h-4 transform ${open.community ? 'rotate-90' : ''}`} viewBox="0 0 20 20" fill="currentColor"><path d="M6 6 L14 10 L6 14 Z" /></svg>
+            </button>
 
-              return (
-                <div key={item.key} className="space-y-1">
-                  {/* top-level area */}
-                  <div className={`flex items-center justify-between px-3 py-2 rounded ${wrapperCls}`}>
-                    {item.href ? (
-                      <Link
-                        href={item.href}
-                        className={`w-full text-left ${isActiveTop ? 'font-semibold' : 'font-medium'}`}
-                        aria-current={isActiveTop ? 'page' : undefined}
-                      >
-                        {item.label}
-                      </Link>
-                    ) : (
-                      // toggler for items with children (like bidding)
-                      <button
-                        type="button"
-                        onClick={() => setBiddingOpen(v => !v)}
-                        className={`w-full text-left ${isActiveTop ? 'font-semibold' : 'font-medium'}`}
-                        aria-expanded={item.key === 'bidding' ? biddingOpen : undefined}
-                      >
-                        {item.label}
-                      </button>
-                    )}
+            {open.community && (
+              <div className="mt-2 space-y-1 pl-2">
+                <Link href="/community-pool/borrower" className={subClass(pathname === '/community-pool/borrower')}>Borrower</Link>
+                <Link href="/community-pool/investor" className={subClass(pathname === '/community-pool/investor')}>Investor</Link>
+              </div>
+            )}
+          </div>
 
-                    {/* show chevron/toggler for bidding item */}
-                    {item.key === 'bidding' ? (
-                      <button
-                        onClick={() => setBiddingOpen(v => !v)}
-                        aria-label={biddingOpen ? 'Collapse bidding' : 'Expand bidding'}
-                        className="ml-2 p-1"
-                      >
-                        <svg
-                          className={`w-4 h-4 transform transition-transform ${biddingOpen ? 'rotate-90' : ''}`}
-                          viewBox="0 0 20 20"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                          aria-hidden="true"
-                        >
-                          <path d="M6 4L14 10L6 16V4Z" fill="currentColor" />
-                        </svg>
-                      </button>
-                    ) : null}
-                  </div>
-
-                  {/* children (submenu) - always present in DOM to keep tree stable */}
-                  {item.children && (
-                    <div
-                      className={`pl-4 mt-1 space-y-1 ${item.key === 'bidding' && !biddingOpen ? 'hidden' : ''}`}
-                      aria-hidden={item.key === 'bidding' ? !biddingOpen : false}
-                    >
-                      {item.children.map(child => {
-                        const childActive = active === child.key || (active && active.startsWith(child.key))
-                        return (
-                          <Link
-                            key={child.key}
-                            href={child.href}
-                            className={`block px-3 py-2 rounded text-sm ${childActive ? 'bg-indigo-100 text-indigo-700 font-semibold' : 'hover:bg-slate-100 text-slate-700'}`}
-                            aria-current={childActive ? 'page' : undefined}
-                          >
-                            {child.label}
-                          </Link>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </nav>
-
-          <div className="mt-auto p-3 border-t text-sm text-slate-500">
-            <div className="mb-2">Quick tips</div>
-            <ul className="text-xs space-y-1">
-              <li>Complete KYC to increase limits.</li>
-              <li>Timely repayments boost trust score.</li>
-            </ul>
+          {/* other nav items */}
+          <div className="mt-4">
+            <Link href="/loans" className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-slate-700 hover:bg-slate-100">Loans</Link>
+            <Link href="/dashboard" className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-slate-700 hover:bg-slate-100 mt-1">Dashboard</Link>
           </div>
         </div>
       </div>
-    </aside>
+    </nav>
   )
 }
