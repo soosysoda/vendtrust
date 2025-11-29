@@ -11,7 +11,7 @@ export default function Sidebar({ active = '' }) {
 
   // unified nav: items may optionally have `children`
   const nav = [
-    { key: 'dashboard', label: 'Dashboard', href: '/' },
+    { key: 'dashboard', label: 'Dashboard', href: '/dashboard' },
     {
       key: 'bidding',
       label: 'Bidding',
@@ -26,7 +26,7 @@ export default function Sidebar({ active = '' }) {
   ]
 
   return (
-    <aside className="flex-shrink-0">
+    <aside className="shrink-0">
       {/* Mobile toggle */}
       <div className="md:hidden p-2">
         <button

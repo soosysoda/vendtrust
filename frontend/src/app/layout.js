@@ -13,12 +13,18 @@ export default function RootLayout({ children }) {
       <body className="bg-slate-50 text-slate-900 antialiased">
         <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-sm border-b">
           <nav className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="flex h-16 items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="rounded-lg px-3 py-1 bg-linear-to-r from-indigo-600 to-violet-500 text-white font-semibold">
-                  VendTrust
-                </div>
-                <span className="text-sm text-slate-500">Community lending • trust-driven</span>
+            <div className="flex h-20 items-center justify-between">
+              <div className="flex items-center justify-center gap-4">
+                <img
+                  src="/VendTrust.png"
+                  alt="VendTrust"
+                  width={80}
+                  height={80}
+                  className="rounded-lg bg-transparent"
+                  style={{ backgroundColor: 'transparent' }}
+                  placeholder="empty"
+                />
+                <span className="text-sm text-slate-500"><span className='text-4xl bg-linear-to-r from-blue-500 to-violet-600 text-transparent bg-clip-text'>VendTrust </span>Community lending • trust-driven</span>
               </div>
 
               <div className="flex items-center gap-3">
