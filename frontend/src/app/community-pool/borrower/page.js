@@ -6,16 +6,25 @@ export const metadata = {
 
 import BorrowerForm from './components/BorrowerForm'
 
+// replace existing fetchPool() with this — safe: only fetches when API base exists
 async function fetchPool() {
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || ''
+  if (!API_BASE) {
+    // no backend configured for frontend dev — avoid fetch to prevent bundler/source-map noise
+    return { total_amount: 0 }
+  }
+
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || ''}/api/community/pool`, { cache: 'no-store' })
+    const res = await fetch(`${API_BASE}/api/community/pool`, { cache: 'no-store' })
     if (!res.ok) return { total_amount: 0 }
     return await res.json()
   } catch (e) {
-    console.warn('fetchPool error', e)
+    // keep log small so bundler doesn't attach unrelated stack traces
+    console.warn('fetchPool error (network):', e.message || e)
     return { total_amount: 0 }
   }
 }
+
 
 export default async function Page() {
   const pool = await fetchPool()

@@ -1,12 +1,13 @@
-// src/app/community-pool/page.js
+// src/app/community-pool/investor/page.js
 export const metadata = {
-  title: 'Community Pool — Analytics',
-  description: 'Community pool analytics, active lenders and comparisons.'
+  title: 'Community Pool — Investor',
+  description: 'Investor view — analytics, active borrower requests and commit funds.'
 }
 
-import AnalyticsPanel from './components/AnalyticsPanel'
-import LeftMenu from './components/LeftMenu'
-import LendersList from './components/LendersList'
+import LeftMenu from '@/components/LeftMenu'
+import AnalyticsClientWrapper from '../analytics/components/AnalyticsClientWrapper'
+import InvestorClientWrapper from './components/InvestorClientWrapper'
+import LendersClientWrapper from '../analytics/components/LendersClientWrapper'
 
 async function fetchPool() {
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE || ''
@@ -16,76 +17,81 @@ async function fetchPool() {
     if (!res.ok) return { total_amount: 0 }
     return await res.json()
   } catch (e) {
-    console.warn('fetchPool error', e.message || e)
+    console.warn('fetchPool error (network)', e.message || e)
     return { total_amount: 0 }
-  }
-}
-
-async function fetchLenders() {
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || ''
-  if (!API_BASE) return { active: [], top: [] }
-  try {
-    const [activeRes, topRes] = await Promise.all([
-      fetch(`${API_BASE}/api/leaderboard/active?limit=8`, { cache: 'no-store' }),
-      fetch(`${API_BASE}/api/leaderboard/top?limit=8`, { cache: 'no-store' })
-    ])
-    const active = activeRes.ok ? await activeRes.json() : { items: [] }
-    const top = topRes.ok ? await topRes.json() : { items: [] }
-    return { active: active.items || [], top: top.items || [] }
-  } catch (e) {
-    console.warn('fetchLenders error', e.message || e)
-    return { active: [], top: [] }
   }
 }
 
 export default async function Page() {
   const pool = await fetchPool()
-  const lenders = await fetchLenders()
   const total = pool.total_amount ? Number(pool.total_amount) : 0
   const available = +(total * 0.75).toFixed(2)
 
   return (
     <div className="min-h-screen bg-gray-50 text-slate-900">
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-[220px_1fr_320px] gap-6">
-          {/* Left menu */}
-          <aside>
-            <LeftMenu />
-          </aside>
+        <header className="mb-6">
+          <h1 className="text-2xl font-semibold">Community Pool — Investor</h1>
+          <p className="text-sm text-slate-600 mt-1">Analytics + active borrower requests — commit funds to support borrowers.</p>
+        </header>
 
-          {/* Center analytics */}
-          <main>
-            <header className="mb-4">
-              <h1 className="text-2xl font-semibold">Community Pool Analytics</h1>
-              <p className="text-sm text-slate-500 mt-1">Pool total: <span className="font-medium">₹{total.toLocaleString()}</span> — Available: <span className="font-medium">₹{available.toLocaleString()}</span></p>
-            </header>
+        <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr_320px] gap-6">
+          {/* LEFT: Menu */}
+          <div>
+            <LeftMenu active="community" />
+          </div>
 
-            <div className="space-y-6">
-              <div className="bg-white rounded-2xl shadow-sm p-4">
-                <AnalyticsPanel apiBase={process.env.NEXT_PUBLIC_API_BASE || ''} />
-              </div>
-
-              <div className="bg-white rounded-2xl shadow-sm p-4">
-                <h3 className="text-lg font-medium mb-2">Bank vs VendTrust — Comparative (period)</h3>
-                <p className="text-sm text-slate-500 mb-4">Compare transaction volumes over selected period (months).</p>
+          {/* CENTER: Analytics (top) + Investor panel (below) */}
+          <main className="space-y-6">
+            {/* Analytics panel */}
+            <section className="bg-white rounded-2xl p-4 shadow-sm">
+              <div className="flex items-center justify-between">
                 <div>
-                  {/* Dual bar chart is inside AnalyticsPanel. (keeps center focused) */}
+                  <h2 className="text-lg font-medium">Community Analytics</h2>
+                  <p className="text-sm text-slate-500 mt-1">Pool trends and Bank vs VendTrust comparison.</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm text-slate-500">Total Pool</div>
+                  <div className="text-lg font-bold">₹{(total || 0).toLocaleString()}</div>
+                  <div className="text-xs text-slate-500 mt-1">Available: ₹{(available || 0).toLocaleString()}</div>
                 </div>
               </div>
-            </div>
-          </main>
 
-          {/* Right lists */}
-          <aside>
-            <div className="space-y-4">
-              <div className="bg-white rounded-2xl shadow-sm p-4">
-                <h4 className="text-sm text-slate-600">Active lenders</h4>
-                <LendersList list={lenders.active} emptyText="No active lenders" />
+              <div className="mt-4">
+                {/* client component renders charts */}
+                <AnalyticsClientWrapper />
+              </div>
+            </section>
+
+            {/* Investor panel (active borrower requests + commits) */}
+            <section className="bg-white rounded-2xl p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-medium">Active Borrower Requests</h3>
+                  <p className="text-sm text-slate-500 mt-1">Browse open requests and commit funds to support a borrower.</p>
+                </div>
+                <div className="text-sm text-slate-500">Live • rewardable only</div>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-sm p-4">
-                <h4 className="text-sm text-slate-600">Top lenders</h4>
-                <LendersList list={lenders.top} emptyText="No top lenders" />
+              <div className="mt-4">
+                <InvestorClientWrapper />
+              </div>
+            </section>
+          </main>
+
+          {/* RIGHT: Lenders lists */}
+          <aside className="space-y-4">
+            <div className="bg-white rounded-2xl p-4 shadow-sm">
+              <h4 className="text-sm text-slate-600">Active Lenders</h4>
+              <div className="mt-3">
+                <LendersClientWrapper type="active" />
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-4 shadow-sm">
+              <h4 className="text-sm text-slate-600">Top Lenders</h4>
+              <div className="mt-3">
+                <LendersClientWrapper type="top" />
               </div>
             </div>
           </aside>
